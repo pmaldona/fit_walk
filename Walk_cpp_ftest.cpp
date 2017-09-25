@@ -7,12 +7,14 @@
 #include <time.h>
 using namespace Rcpp;
 
+//Genera posicion al asar dimension d escala scale
 NumericVector do_muller_c(int d,double scale =2.0){
   NumericVector v = rnorm(d);
   v = v/sqrt(sum(v*v))*scale;
   return(v);
 }
 
+//Genera posicion del optimo
 NumericVector optimum_rn_c(NumericVector opt_i,double sg){
   int i = opt_i.size();
   double d=Rf_rnorm(0,sg);
@@ -21,14 +23,17 @@ NumericVector optimum_rn_c(NumericVector opt_i,double sg){
   return(opt_i+v);
 }
 
+//Calcula el fitness
 double fit_gauss(NumericVector vec) {
   return(exp((-sum(vec*vec))/2));
 }
 
+//Calcula el fitness relativo
 double rel_fit(NumericVector vecwt,NumericVector vecmt){
   return(fit_gauss(vecmt)/fit_gauss(vecwt)-1);
 }
 
+//Calcula prob y decide si se fija N infinito
 bool prob_fix_ndel(double s){
   
   double a = as<double>(runif(1,0.0,1.0));       
@@ -41,6 +46,7 @@ bool prob_fix_ndel(double s){
   }
 }
 
+//Calcula prob fijacion y decide si se fija N finito
 bool prob_fix_K(double s,int N){
   
   double a = as<double>(runif(1,0.0,1.0));       
@@ -53,6 +59,7 @@ bool prob_fix_K(double s,int N){
   }
 }
 
+//Si cae dentro de la esfera se fija, si no no. Orr
 bool fix_sphere(NumericVector vec,double d=2){
   double n = sqrt(sum(vec*vec));
   
@@ -66,6 +73,8 @@ bool fix_sphere(NumericVector vec,double d=2){
   }
 }
 
+//Calcula el paso para el cambio ambiental. Devuelve el numero de paso
+//Inputs paso actual y el Tau de la dist de poisson del ambiente
 int env_chg_step (double tau = NA_REAL,double paso=0){
   
   if(!R_IsNA(tau)){
@@ -76,18 +85,20 @@ int env_chg_step (double tau = NA_REAL,double paso=0){
     }
 }
 
+//Funcion de walk 
+
 // [[Rcpp::export]]
 DataFrame walk_Nfix_f(List input){
   
   int times,timed,ti;
   times=time(NULL);
   
-  int N = input["N"];
-  int n = input["n"];
-  double mms = input["mms"];
-  int Nm = input["Nm"];
-  double tau = input["tau"];
-  double sg = input["sg"];
+  int N = input["N"]; //Poblacion
+  int n = input["n"]; //Num dimensiones
+  double mms = input["mms"]; //Mutation medium size -Tamanio mutacional medio
+  int Nm = input["Nm"]; //numero de mutaciones final
+  double tau = input["tau"];  //Tau ambiental
+  double sg = input["sg"]; //Sigma ambiental
   
   
   // std::vector<double> c;
